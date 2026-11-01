@@ -1,0 +1,33 @@
+{
+ "name": "إتقان — بطاقات الإنجليزية بالصوت",
+ "short_name": "إتقان",
+ "description": "تعلّم الإنجليزية ببطاقات صوتية وتكرار متباعد",
+ "lang": "ar",
+ "dir": "rtl",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#F8FAFC",
+ "theme_color": "#3B82F6",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
