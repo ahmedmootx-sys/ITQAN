@@ -1,7 +1,7 @@
 {
  "name": "ITQAN",
  "short_name": "ITQAN",
- "description": "ITQAN — Spaced Repetition English Cards",
+ "description": "ITQAN — Spaced repetition English learning flashcards with audio",
  "lang": "ar",
  "dir": "rtl",
  "start_url": "./index.html",
