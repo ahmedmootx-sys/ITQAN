@@ -1,7 +1,7 @@
 {
- "name": "إتقان — بطاقات الإنجليزية بالصوت",
- "short_name": "إتقان",
- "description": "تعلّم الإنجليزية ببطاقات صوتية وتكرار متباعد",
+ "name": "ITQAN",
+ "short_name": "ITQAN",
+ "description": "ITQAN — Spaced Repetition English Cards",
  "lang": "ar",
  "dir": "rtl",
  "start_url": "./index.html",
