@@ -1083,6 +1083,8 @@ body.dark .tab[aria-current="page"] .t-lbl{
   contain-intrinsic-size:0 64px;
   contain:layout style;
   position:relative;
+  width:100%;
+  box-sizing:border-box;
 }
 body.dark .item.word-card{
   background:#111625;
@@ -1117,6 +1119,7 @@ body.dark .item.word-card.is-last-stopped{
   justify-content:space-between;
   gap:10px;
   width:100%;
+  box-sizing:border-box;
 }
 .word-info{
   flex:1;
@@ -1154,99 +1157,216 @@ body.dark .item.word-card.is-last-stopped{
 .word-actions{
   display:flex;
   align-items:center;
-  gap:4px;
+  gap:5px;
   flex-shrink:0;
 }
-.act-btn{
-  width:32px;
-  height:32px;
-  border-radius:9px;
-  border:1px solid rgba(226,232,240,0.9);
-  background:var(--bg);
+
+/* Distinct Round Green Audio Button */
+.snd-btn-green{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#10B981;
+  border:none;
+  color:#FFFFFF;
+  box-shadow:0 3px 10px rgba(16,185,129,0.32);
   display:inline-grid;
   place-items:center;
-  color:var(--muted);
   cursor:pointer;
-  transition:all .16s ease;
+  transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
   padding:0;
+  flex-shrink:0;
   user-select:none;
 }
-.act-btn svg{
-  width:15px;
-  height:15px;
+.snd-btn-green svg{
+  width:17px;
+  height:17px;
   display:block;
+  color:#FFFFFF;
 }
-body.dark .act-btn{
-  border-color:rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.04);
-  color:#94A3B8;
-}
-.act-btn.snd-btn:hover, .act-btn.snd-btn.playing{
-  color:#6366F1;
-  border-color:rgba(99,102,241,0.4);
-  background:rgba(99,102,241,0.1);
-}
-.act-btn.listen:hover{
-  color:#3B82F6;
-  border-color:rgba(59,130,246,0.4);
-  background:rgba(59,130,246,0.1);
-}
-.act-btn.write:hover{
-  color:#10B981;
-  border-color:rgba(16,185,129,0.4);
-  background:rgba(16,185,129,0.1);
-}
-.act-btn.pin-btn:hover{
-  color:#F97316;
-  border-color:rgba(249,115,22,0.4);
-  background:rgba(249,115,22,0.1);
-}
-.act-btn.pin-btn.pinned{
-  color:#F97316;
-  border-color:#F97316;
-  background:rgba(249,115,22,0.14);
-}
-.act-btn.del-btn:hover{
-  color:#EF4444;
-  border-color:rgba(239,68,68,0.4);
-  background:rgba(239,68,68,0.1);
+.snd-btn-green:hover, .snd-btn-green.playing{
+  background:#059669;
+  transform:scale(1.08);
+  box-shadow:0 4px 14px rgba(5,150,105,0.45);
 }
 
+/* Compact, High-Contrast Practice & Action Buttons */
+.btn-word-act{
+  width:30px;
+  height:30px;
+  border-radius:8px;
+  display:inline-grid;
+  place-items:center;
+  cursor:pointer;
+  transition:all .15s ease;
+  padding:0;
+  flex-shrink:0;
+  user-select:none;
+  border:1px solid transparent;
+}
+.btn-word-act svg{
+  width:14.5px;
+  height:14.5px;
+  display:block;
+}
+
+/* Listen practice button (Blue) */
+.btn-word-act.act-listen{
+  background:rgba(37,99,235,0.08);
+  border-color:rgba(37,99,235,0.25);
+  color:#2563EB;
+}
+.btn-word-act.act-listen:hover{
+  background:rgba(37,99,235,0.18);
+  border-color:#2563EB;
+  color:#1D4ED8;
+}
+body.dark .btn-word-act.act-listen{
+  background:rgba(59,130,246,0.15);
+  border-color:rgba(59,130,246,0.35);
+  color:#60A5FA;
+}
+body.dark .btn-word-act.act-listen:hover{
+  background:rgba(59,130,246,0.25);
+  color:#93C5FD;
+}
+
+/* Write practice button (Amber/Orange) */
+.btn-word-act.act-write{
+  background:rgba(217,119,6,0.08);
+  border-color:rgba(217,119,6,0.25);
+  color:#D97706;
+}
+.btn-word-act.act-write:hover{
+  background:rgba(217,119,6,0.18);
+  border-color:#D97706;
+  color:#B45309;
+}
+body.dark .btn-word-act.act-write{
+  background:rgba(245,158,11,0.15);
+  border-color:rgba(245,158,11,0.35);
+  color:#FBBF24;
+}
+body.dark .btn-word-act.act-write:hover{
+  background:rgba(245,158,11,0.25);
+  color:#FDE68A;
+}
+
+/* Pin button */
+.btn-word-act.act-pin{
+  background:rgba(249,115,22,0.08);
+  border-color:rgba(249,115,22,0.25);
+  color:#EA580C;
+}
+.btn-word-act.act-pin:hover{
+  background:rgba(249,115,22,0.18);
+  border-color:#EA580C;
+}
+.btn-word-act.act-pin.pinned{
+  background:rgba(249,115,22,0.2);
+  border-color:#EA580C;
+  color:#EA580C;
+}
+body.dark .btn-word-act.act-pin{
+  background:rgba(249,115,22,0.12);
+  border-color:rgba(249,115,22,0.3);
+  color:#FB923C;
+}
+body.dark .btn-word-act.act-pin.pinned{
+  background:rgba(249,115,22,0.25);
+  border-color:#FB923C;
+  color:#FB923C;
+}
+
+/* Delete button */
+.btn-word-act.act-del{
+  background:rgba(239,68,68,0.08);
+  border-color:rgba(239,68,68,0.25);
+  color:#DC2626;
+}
+.btn-word-act.act-del:hover{
+  background:rgba(239,68,68,0.18);
+  border-color:#DC2626;
+}
+
+/* Practice Subbar (inside study view - clean and non-overlapping) */
 .practice-header{
+  position:relative;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  margin-bottom:14px;
+  gap:10px;
+  margin:6px 0 14px;
   padding:8px 12px;
   border-radius:14px;
   background:rgba(99,102,241,0.08);
   border:1px solid rgba(99,102,241,0.18);
+  box-sizing:border-box;
 }
 body.dark .practice-header{
   background:rgba(99,102,241,0.15);
   border-color:rgba(99,102,241,0.28);
 }
+.practice-tag-inline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  flex:1;
+}
+.p-tag-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  font-weight:700;
+  padding:4px 9px;
+  border-radius:999px;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.p-tag-pill svg{width:13px;height:13px}
+.p-tag-pill.p-listen{
+  background:rgba(37,99,235,0.12);
+  color:#2563EB;
+}
+.p-tag-pill.p-write{
+  background:rgba(217,119,6,0.14);
+  color:#B45309;
+}
+body.dark .p-tag-pill.p-listen{
+  background:rgba(59,130,246,0.2);
+  color:#93C5FD;
+}
+body.dark .p-tag-pill.p-write{
+  background:rgba(245,158,11,0.2);
+  color:#FCD34D;
+}
 .practice-header .p-title{
-  font-size:13px;
+  font-size:13.5px;
   font-weight:700;
   color:var(--fg);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 /* Home quick resume hero card */
 .resume-hero-card{
   padding:14px 16px;
   border-radius:18px;
-  background:linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(249,115,22,0.08) 100%);
-  border:1px solid rgba(99,102,241,0.22);
+  background:linear-gradient(135deg, rgba(99,102,241,0.07) 0%, rgba(249,115,22,0.07) 100%);
+  border:1px solid rgba(99,102,241,0.2);
   margin-bottom:12px;
-  transition:all .2s ease;
+  width:100%;
+  box-sizing:border-box;
+  overflow:hidden;
 }
 body.dark .resume-hero-card{
-  background:linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(249,115,22,0.12) 100%);
+  background:linear-gradient(135deg, rgba(99,102,241,0.14) 0%, rgba(249,115,22,0.12) 100%);
   border-color:rgba(255,255,255,0.1);
 }
-.rh-head{
+.rh-top-row{
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -1259,39 +1379,171 @@ body.dark .resume-hero-card{
   gap:5px;
   font-size:11.5px;
   font-weight:700;
-  color:#F97316;
+  color:#EA580C;
 }
-.rh-badge svg{width:14px;height:14px}
+body.dark .rh-badge{color:#FB923C}
+.rh-badge svg{width:13.5px;height:13.5px}
 .rh-pos{
   font-size:11px;
   color:var(--muted);
 }
-.rh-body{
+.rh-word-box{
+  margin-bottom:12px;
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  overflow:hidden;
+}
+.rh-en{
+  font-size:18px;
+  font-weight:800;
+  color:var(--fg);
+}
+.rh-sep{
+  color:var(--faint);
+  font-size:14px;
+}
+.rh-ar{
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--muted);
+}
+.rh-btns-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+}
+.btn-resume-cta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  height:36px;
+  padding:0 14px;
+  border-radius:10px;
+  background:#EA580C;
+  color:#FFFFFF !important;
+  font-size:12.5px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  transition:all .18s ease;
+  white-space:nowrap;
+  box-shadow:0 3px 10px rgba(234,88,12,0.3);
+  flex:1;
+}
+.btn-resume-cta:hover{
+  background:#C2410C;
+  transform:translateY(-1px);
+}
+body.dark .btn-resume-cta{
+  background:#F97316;
+  color:#FFFFFF !important;
+  box-shadow:0 3px 12px rgba(249,115,22,0.4);
+}
+body.dark .btn-resume-cta:hover{
+  background:#EA580C;
+}
+.btn-resume-cta svg{width:14px;height:14px;fill:currentColor}
+
+.btn-resume-sub{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  height:36px;
+  padding:0 14px;
+  border-radius:10px;
+  background:#FFFFFF;
+  color:#C2410C !important;
+  font-size:12.5px;
+  font-weight:700;
+  border:1px solid rgba(234,88,12,0.4);
+  cursor:pointer;
+  transition:all .18s ease;
+  white-space:nowrap;
+  flex:1;
+}
+.btn-resume-sub:hover{
+  background:rgba(234,88,12,0.06);
+  border-color:#C2410C;
+}
+body.dark .btn-resume-sub{
+  background:rgba(249,115,22,0.12);
+  color:#FB923C !important;
+  border-color:rgba(249,115,22,0.35);
+}
+body.dark .btn-resume-sub:hover{
+  background:rgba(249,115,22,0.22);
+}
+.btn-resume-sub svg{width:14px;height:14px}
+
+/* Browse quick resume banner */
+.resume-banner{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  flex-wrap:wrap;
+  padding:12px 14px;
+  border-radius:16px;
+  background:linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(249,115,22,0.08) 100%);
+  border:1px solid rgba(99,102,241,0.22);
+  margin-bottom:12px;
+  width:100%;
+  box-sizing:border-box;
 }
-.rh-word{
+body.dark .resume-banner{
+  background:linear-gradient(135deg, rgba(99,102,241,0.16) 0%, rgba(249,115,22,0.14) 100%);
+  border-color:rgba(255,255,255,0.1);
+}
+.rb-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
   min-width:0;
   flex:1;
 }
-.rh-en{
-  font-size:17px;
-  font-weight:800;
+.rb-pin-icon{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:rgba(249,115,22,0.15);
+  color:#EA580C;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+}
+body.dark .rb-pin-icon{color:#FB923C}
+.rb-pin-icon svg{width:18px;height:18px}
+.rb-text{min-width:0;flex:1}
+.rb-label{
+  font-size:10.5px;
+  font-weight:700;
+  color:#EA580C;
+  margin-bottom:1px;
+}
+body.dark .rb-label{color:#FB923C}
+.rb-title{
+  font-size:14.5px;
+  font-weight:700;
   color:var(--fg);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
-.rh-ar{
-  font-size:14px;
-  font-weight:600;
+.rb-title b{color:var(--fg);margin-inline-end:4px}
+.rb-ar{color:var(--muted);font-weight:600}
+.rb-meta{
+  font-size:11px;
   color:var(--muted);
-  margin-right:6px;
+  margin-top:2px;
 }
-.rh-actions{
+.rb-actions{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:6px;
+  flex-shrink:0;
 }
 
 .tabbar_old{
@@ -1545,6 +1797,136 @@ body.dark .rb-next-btn{
 }
 .rb-next-btn:hover{background:rgba(99,102,241,0.15)}
 
+
+/* Global Mobile Overflow and Width Protection */
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+body {
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+main {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 14px max(14px, env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  overflow-x: hidden;
+}
+.top-in {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left));
+}
+.card {
+  width: 100%;
+  box-sizing: border-box;
+}
+.stats3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+.stat {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 12px 6px;
+  overflow: hidden;
+}
+.modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mode {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 4px;
+  overflow: hidden;
+}
+.mode b {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.mode span {
+  font-size: 9.5px;
+  line-height: 1.25;
+}
+
+@media (max-width: 420px) {
+  main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .top-in {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .stats3 {
+    gap: 6px;
+  }
+  .stat {
+    padding: 10px 4px;
+  }
+  .stat b {
+    font-size: 22px;
+  }
+  .stat span {
+    font-size: 11px;
+  }
+  .modes {
+    gap: 4px;
+  }
+  .mode {
+    padding: 9px 3px;
+  }
+  .mode b {
+    font-size: 12px;
+  }
+  .mode span {
+    display: none;
+  }
+  .resume-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .rb-actions {
+    justify-content: flex-end;
+  }
+  .rh-btns-row {
+    flex-direction: row;
+    gap: 6px;
+  }
+  .btn-resume-cta, .btn-resume-sub {
+    font-size: 11.5px;
+    padding: 0 8px;
+    height: 34px;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -1592,26 +1974,24 @@ body.dark .rb-next-btn{
 
     <!-- Quick Resume Hero Card on Home -->
     <div class="card resume-hero-card" id="homeResumeCard">
-      <div class="rh-head">
+      <div class="rh-top-row">
         <span class="rh-badge"><span data-ico="pin"></span> آخر نقطة توقفت عندها</span>
         <span class="rh-pos" id="homeLastMeta">الكلمة 1 من 603</span>
       </div>
-      <div class="rh-body">
-        <div class="rh-word">
-          <span class="rh-en" id="homeLastEn">—</span>
-          <span class="rh-ar" id="homeLastAr"></span>
-        </div>
-        <div class="rh-actions">
-          <button class="btn pri sm" id="btnHomeJumpToWord" title="الانتقال إلى مكان الكلمة في القائمة">
-            <span data-ico="jump"></span> انتقل إليها
-          </button>
-          <button class="btn cta sm" id="btnHomePracticeBatch" title="مراجعة وجبة الـ 5 كلمات التالية">
-            <span data-ico="play"></span> مراجعة (5 كلمات)
-          </button>
-        </div>
+      <div class="rh-word-box">
+        <b class="rh-en" id="homeLastEn">—</b>
+        <span class="rh-sep">—</span>
+        <span class="rh-ar" id="homeLastAr"></span>
       </div>
-    </div>
-    </div>
+      <div class="rh-btns-row">
+        <button class="btn-resume-cta" id="btnHomePracticeBatch" title="مراجعة وجبة الـ 5 كلمات">
+          <span data-ico="play"></span> متابعة (5 كلمات)
+        </button>
+        <button class="btn-resume-sub" id="btnHomeJumpToWord" title="الانتقال إلى مكان الكلمة في القائمة">
+          <span data-ico="jump"></span> انتقل إليها
+        </button>
+      </div>
+    </div>/div>
 
     <div class="card">
       <div class="label" style="margin-top:0">نوع التمرين</div>
@@ -1700,11 +2080,11 @@ body.dark .rb-next-btn{
         </div>
       </div>
       <div class="rb-actions">
-        <button class="rb-jump-btn" id="btnJumpToLast" title="الانتقال إلى مكان الكلمة في القائمة">
-          <span data-ico="jump"></span> انتقل إليها
+        <button class="btn-resume-cta" id="btnPracticeNext" title="بدء التمرين من هذه الكلمة">
+          <span data-ico="play"></span> متابعة (5 كلمات)
         </button>
-        <button class="rb-next-btn" id="btnPracticeNext" title="بدء التمرين من هذه الكلمة">
-          متابعة
+        <button class="btn-resume-sub" id="btnJumpToLast" title="الانتقال إلى مكان الكلمة في القائمة">
+          <span data-ico="jump"></span> انتقل إليها
         </button>
       </div>
     </div>
@@ -1997,7 +2377,7 @@ function botPoses(active, keys){
 function initHomeBot(){
   const hb = $('#homeBot');
   if(hb && !hb.querySelector('.pose')){
-    hb.innerHTML = botPoses('idle', ['idle', 'reading', 'trophy', 'inspect', 'settings', 'fire']);
+    hb.innerHTML = botPoses('idle', ['idle', 'listening', 'reading', 'trophy', 'inspect', 'settings', 'fire']);
   }
   const sb = $('#settingsBotImg');
   if(sb && !sb.getAttribute('src')) sb.src = BOT.settings;
@@ -2006,7 +2386,33 @@ function initHomeBot(){
 function setBotEmotion(target,name){
   const el=(typeof target==='string')?$(target):target;
   if(!el) return;
-  el.querySelectorAll('.pose').forEach(p2=>p2.classList.toggle('on',p2.dataset.pose===name));
+  const poses=el.querySelectorAll('.pose');
+  if(!poses.length) return;
+
+  const aliasMap={
+    'read':'reading',
+    'explaining':'reading',
+    'listen':'listening',
+    'idle':'listening',
+    'thinking':'inspect',
+    'sad':'inspect',
+    'write':'inspect',
+    'celebrate':'trophy',
+    'motivated':'fire'
+  };
+
+  let targetPose=name;
+  let match=Array.from(poses).find(p=>p.dataset.pose===targetPose);
+  if(!match && aliasMap[targetPose]){
+    targetPose=aliasMap[targetPose];
+    match=Array.from(poses).find(p=>p.dataset.pose===targetPose);
+  }
+  // Safe fallback to guarantee at least one pose stays visible
+  if(!match){
+    targetPose=poses[0].dataset.pose;
+  }
+
+  poses.forEach(p=>p.classList.toggle('on',p.dataset.pose===targetPose));
 }
 function pulseBot(target,anim){
   const el=(typeof target==='string')?$(target):target;
@@ -2037,9 +2443,9 @@ function triggerConfetti(target){
   setTimeout(()=>wrap.remove(),1000);
 }
 const MODE_CONFIG={
-  read:{emotion:'explaining',phrase:'انظر واستمع!'},
-  listen:{emotion:'explaining',phrase:'استمع وفكر!'},
-  write:{emotion:'reading',phrase:'اكتب ما تسمعه!'}
+  read:{emotion:'reading',phrase:'اقرأ واستمع للكلمة!'},
+  listen:{emotion:'listening',phrase:'استمع وركز في النطق!'},
+  write:{emotion:'inspect',phrase:'اكتب ما تسمعه بدقة!'}
 };
 function applyModeBot(mode,isExplicitClick){
   const cfg=MODE_CONFIG[mode]||MODE_CONFIG.read;
@@ -2565,7 +2971,8 @@ function renderCard(autoplay){
   }
 
   const practiceBanner = practiceState ? ('<div class="practice-header">'
-    +'<div class="practice-tag"><span class="badge '+(practiceState.mode==='listen'?'rev':'learn')+'">'
+    +'<div class="practice-tag-inline">'
+    +'<span class="p-tag-pill '+(practiceState.mode==='listen'?'p-listen':'p-write')+'">'
     +(practiceState.mode==='listen'?I.headphones+' تدريب استماعي':I.pencil+' تدريب كتابي')+'</span>'
     +'<span class="p-title" dir="ltr">'+esc(w.en)+'</span></div>'
     +'<button class="btn ghost sm" id="exitPracticeBannerBtn" style="padding:4px 10px;font-size:12px">✕ عودة للمكتبة</button>'
@@ -2931,13 +3338,11 @@ function renderList(reset = true){
       + '<div class="tx-en">' + esc(w.en) + (w.hint ? '<span class="word-hint">' + esc(w.hint) + '</span>' : '') + '</div>'
       + '</div>'
       + '<div class="word-actions">'
-      + '<button class="snd-btn" data-play="' + w.uid + '" aria-label="استمع" title="استمع للنطق">' + I.volume + '</button>'
-      + '<button class="practice-btn listen" data-practice-listen="' + w.uid + '" title="تدرب استماعاً">'
-      + '<span class="p-ico">' + I.headphones + '</span><span class="p-lbl">استماع</span></button>'
-      + '<button class="practice-btn write" data-practice-write="' + w.uid + '" title="تدرب كتابة">'
-      + '<span class="p-ico">' + I.pencil + '</span><span class="p-lbl">كتابة</span></button>'
-      + '<button class="pin-btn' + (isLast ? ' pinned' : '') + '" data-pin="' + w.uid + '" aria-label="نقطة توقف" title="' + (isLast ? 'نقطة توقفك الحالية' : 'تثبيت كنقطة توقف') + '">' + (isLast ? I.pinned : I.pin) + '</button>'
-      + (!w.base ? '<button class="del-btn" data-del="' + w.uid + '" aria-label="حذف" title="حذف">' + I.trash + '</button>' : '')
+      + '<button class="snd-btn-green" data-play="' + w.uid + '" aria-label="استمع للنطق" title="استمع للنطق">' + I.volume + '</button>'
+      + '<button class="btn-word-act act-listen" data-practice-listen="' + w.uid + '" aria-label="تدرب استماعاً" title="تدرب استماعاً">' + I.headphones + '</button>'
+      + '<button class="btn-word-act act-write" data-practice-write="' + w.uid + '" aria-label="تدرب كتابة" title="تدرب كتابة">' + I.pencil + '</button>'
+      + '<button class="btn-word-act act-pin' + (isLast ? ' pinned' : '') + '" data-pin="' + w.uid + '" aria-label="نقطة توقف" title="' + (isLast ? 'نقطة توقفك الحالية' : 'تثبيت كنقطة توقف') + '">' + (isLast ? I.pinned : I.pin) + '</button>'
+      + (!w.base ? '<button class="btn-word-act act-del" data-del="' + w.uid + '" aria-label="حذف" title="حذف">' + I.trash + '</button>' : '')
       + '</div>'
       + '</div>';
 
@@ -2947,7 +3352,6 @@ function renderList(reset = true){
     el.querySelector('[data-pin]').onclick = e => { e.stopPropagation(); setLastStudiedWord(w.uid); };
     const d = el.querySelector('[data-del]');
     if(d) d.onclick = e => { e.stopPropagation(); delCustom(w.uid); };
-
     frag.appendChild(el);
   });
 
@@ -2980,17 +3384,13 @@ function renderMine(){
       +'<div class="tx-en">'+esc(w.en)+'</div>'
       +'</div>'
       +'<div class="word-actions">'
-      +'<button class="snd-btn" data-play="'+w.uid+'" aria-label="استمع" title="استمع للنطق">'+I.volume+'</button>'
-      +'<button class="practice-btn listen" data-practice-listen="'+w.uid+'" title="تدرب استماعاً">'
-      +'<span class="p-ico">'+I.headphones+'</span><span class="p-lbl">استماع</span></button>'
-      +'<button class="practice-btn write" data-practice-write="'+w.uid+'" title="تدرب كتابة">'
-      +'<span class="p-ico">'+I.pencil+'</span><span class="p-lbl">كتابة</span></button>'
-      +'<button class="pin-btn' + (isLast ? ' pinned' : '') + '" data-pin="' + w.uid + '" aria-label="نقطة توقف" title="' + (isLast ? 'نقطة توقفك الحالية' : 'تثبيت كنقطة توقف') + '">' + (isLast ? I.pinned : I.pin) + '</button>'
-      +'<button class="del-btn" data-del="'+w.uid+'" aria-label="حذف" title="حذف">'+I.trash+'</button>'
+      +'<button class="snd-btn-green" data-play="'+w.uid+'" aria-label="استمع للنطق" title="استمع للنطق">'+I.volume+'</button>'
+      +'<button class="btn-word-act act-listen" data-practice-listen="'+w.uid+'" aria-label="تدرب استماعاً" title="تدرب استماعاً">'+I.headphones+'</button>'
+      +'<button class="btn-word-act act-write" data-practice-write="'+w.uid+'" aria-label="تدرب كتابة" title="تدرب كتابة">'+I.pencil+'</button>'
+      +'<button class="btn-word-act act-pin' + (isLast ? ' pinned' : '') + '" data-pin="'+w.uid+'" aria-label="نقطة توقف" title="'+(isLast?'نقطة توقفك الحالية':'تثبيت كنقطة توقف')+'">'+(isLast?I.pinned:I.pin)+'</button>'
+      +'<button class="btn-word-act act-del" data-del="'+w.uid+'" aria-label="حذف" title="حذف">'+I.trash+'</button>'
       +'</div>'
-      +'</div>'
-      +'</div>';
-  }).join('')+'</div>';
+      +'</div></div>';}).join('')+'</div>';
 
   box.querySelectorAll('[data-play]').forEach(b=>{
     b.onclick=e=>{
