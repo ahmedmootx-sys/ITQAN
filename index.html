@@ -84,7 +84,7 @@ html[data-theme="dark"]{
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);transition:background .3s ease,color .3s ease}
 html{overflow-x:clip}
-body{font-family:var(--sans);font-size:15px;line-height:1.55;min-height:100dvh;overscroll-behavior-y:none}
+body{font-family:var(--sans);font-size:15px;line-height:1.55;min-height:100dvh;-webkit-overflow-scrolling:touch}
 button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
 button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-radius:10px}
 svg{display:block}
@@ -1079,9 +1079,6 @@ body.dark .tab[aria-current="page"] .t-lbl{
   border-radius:15px;
   margin-bottom:8px;
   transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
-  content-visibility:auto;
-  contain-intrinsic-size:0 64px;
-  contain:layout style;
   position:relative;
   width:100%;
   box-sizing:border-box;
@@ -1800,19 +1797,21 @@ body.dark .rb-next-btn{
 
 /* Global Mobile Overflow and Width Protection */
 html {
-  overflow-x: hidden !important;
+  overflow-x: hidden;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
 }
 body {
-  overflow-x: hidden !important;
   width: 100%;
   max-width: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   position: relative;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
 }
 *, *::before, *::after {
   box-sizing: border-box;
@@ -1823,7 +1822,6 @@ main {
   margin: 0 auto;
   box-sizing: border-box;
   padding: 14px max(14px, env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
-  overflow-x: hidden;
 }
 .top-in {
   width: 100%;
@@ -1963,7 +1961,7 @@ main {
       </div>
       <div class="robot">
         <div class="bubble" id="bubble">هيا نبدأ!</div>
-        <div class="bot-img" id="homeBot" onclick="interactHomeBot()" role="button" aria-label="تفاعل مع الشخصية" title="انقر للتفاعل!"></div></div>
+        <div class="bot-img" id="homeBot" onclick="interactHomeBot()" role="button" aria-label="تفاعل مع الشخصية" title="انقر للتفاعل!"></div>
       </div>
     </div>
 
@@ -1971,6 +1969,7 @@ main {
       <div class="stat s-new"><b id="hNew">0</b><span>جديدة</span></div>
       <div class="stat s-learn"><b id="hLearn">0</b><span>قيد التعلّم</span></div>
       <div class="stat s-rev"><b id="hRev">0</b><span>للمراجعة</span></div>
+    </div>
 
     <!-- Quick Resume Hero Card on Home -->
     <div class="card resume-hero-card" id="homeResumeCard">
@@ -1991,7 +1990,7 @@ main {
           <span data-ico="jump"></span> انتقل إليها
         </button>
       </div>
-    </div>/div>
+    </div>
 
     <div class="card">
       <div class="label" style="margin-top:0">نوع التمرين</div>
@@ -3158,8 +3157,31 @@ function setLastStudiedWord(uid){
   S.lastStudiedUid = uid;
   save();
   updateResumeWidgets();
-  renderList(false);
   const w = WORDS.find(x => x.uid === uid);
+  // Instant in-place visual update
+  const list = $('#browseList');
+  if(list){
+    const oldPinned = list.querySelector('.item.is-last-stopped');
+    if(oldPinned){
+      oldPinned.classList.remove('is-last-stopped');
+      const pinBtn = oldPinned.querySelector('.act-pin');
+      if(pinBtn){
+        pinBtn.classList.remove('pinned');
+        pinBtn.innerHTML = I.pin;
+        pinBtn.title = 'تثبيت كنقطة توقف';
+      }
+    }
+    const newCard = list.querySelector('.item[data-uid="' + uid + '"]');
+    if(newCard){
+      newCard.classList.add('is-last-stopped');
+      const pinBtn = newCard.querySelector('.act-pin');
+      if(pinBtn){
+        pinBtn.classList.add('pinned');
+        pinBtn.innerHTML = I.pinned;
+        pinBtn.title = 'نقطة توقفك الحالية';
+      }
+    }
+  }
   toast('📍 تم تثبيت نقطة التوقف: ' + (w ? w.en : ''));
 }
 
@@ -3205,8 +3227,8 @@ function jumpToLastStudiedWord(targetUid){
   const idx = WORDS.findIndex(x => x.uid === w.uid);
   if(idx === -1) return;
 
-  shown = Math.max(CHUNK, idx + 25);
-  renderList(true);
+  // Render enough items to include the target card
+  renderList(true, idx + 20);
 
   setTimeout(() => {
     const el = document.querySelector('.item[data-uid="' + w.uid + '"]');
@@ -3217,7 +3239,7 @@ function jumpToLastStudiedWord(targetUid){
       el.classList.add('item-jump-highlight');
       toast('📍 نقطة توقفك: ' + w.en + ' (رقم ' + (idx + 1) + ')');
     }
-  }, 90);
+  }, 100);
 }
 
 let batchPracticeQueue = null;
@@ -3271,36 +3293,22 @@ function showBatchPracticeComplete(lastWord){
   const ebb = $('#exitBatchBtn'); if(ebb) ebb.onclick = () => { exitWordPractice(); show('home'); };
 }
 
+/* ---------- browse & infinite scroll ---------- */
+let filter = 'all', q = '', shown = 0;
+let isChunkLoading = false;
 let sentinelObserver = null;
-function initBrowseSentinel(){
-  const sentinel = $('#browseSentinel');
-  if(!sentinel || !('IntersectionObserver' in window)) return;
-  if(sentinelObserver) sentinelObserver.disconnect();
-  sentinelObserver = new IntersectionObserver((entries) => {
-    if(entries[0].isIntersecting && $('#v-browse').classList.contains('on')){
-      renderList(false);
-    }
-  }, { rootMargin: '300px' });
-  sentinelObserver.observe(sentinel);
-}
+const CHUNK = 50;
 
-/* ---------- browse ---------- */
-let filter='all', q='', shown=0;
 function wState(w){
-  const c=card(w.uid);
-  if(c.type==='new') return 'new';
-  if(c.type==='review') return c.ivl>=21?'mature':'review';
+  const c = card(w.uid);
+  if(c.type === 'new') return 'new';
+  if(c.type === 'review') return c.ivl >= 21 ? 'mature' : 'review';
   return 'learn';
 }
-const CHUNK = 70;
 
-function renderList(reset = true){
-  const list = $('#browseList'); if(!list) return;
+function getBrowseFiltered(){
   const now = Date.now();
-  const lastWord = getLastStudiedWord();
-  const lastUid = lastWord ? lastWord.uid : '';
-
-  const items = WORDS.filter(w => {
+  return WORDS.filter(w => {
     const st = wState(w);
     if(filter === 'new' && st !== 'new') return false;
     if(filter === 'due' && !(st === 'learn' || (st === 'review' && card(w.uid).due <= now))) return false;
@@ -3310,55 +3318,134 @@ function renderList(reset = true){
     const s = q.toLowerCase().trim();
     return (w.en || '').toLowerCase().includes(s) || (w.ar || '').includes(s) || (w.hint || '').toLowerCase().includes(s);
   });
+}
+
+function createWordCard(w, lastUid){
+  const isLast = (w.uid === lastUid);
+  const el = document.createElement('div');
+  el.className = 'item word-card' + (isLast ? ' is-last-stopped' : '');
+  el.setAttribute('data-uid', w.uid);
+  el.innerHTML = '<div class="word-main">'
+    + '<div class="word-info">'
+    + '<div class="tx-ar">' + esc(w.ar) + '</div>'
+    + '<div class="tx-en">' + esc(w.en) + (w.hint ? '<span class="word-hint">' + esc(w.hint) + '</span>' : '') + '</div>'
+    + '</div>'
+    + '<div class="word-actions">'
+    + '<button class="snd-btn-green" data-play="' + w.uid + '" aria-label="استمع للنطق" title="استمع للنطق">' + I.volume + '</button>'
+    + '<button class="btn-word-act act-listen" data-practice-listen="' + w.uid + '" aria-label="تدرب استماعاً" title="تدرب استماعاً">' + I.headphones + '</button>'
+    + '<button class="btn-word-act act-write" data-practice-write="' + w.uid + '" aria-label="تدرب كتابة" title="تدرب كتابة">' + I.pencil + '</button>'
+    + '<button class="btn-word-act act-pin' + (isLast ? ' pinned' : '') + '" data-pin="' + w.uid + '" aria-label="نقطة توقف" title="' + (isLast ? 'نقطة توقفك الحالية' : 'تثبيت كنقطة توقف') + '">' + (isLast ? I.pinned : I.pin) + '</button>'
+    + (!w.base ? '<button class="btn-word-act act-del" data-del="' + w.uid + '" aria-label="حذف" title="حذف">' + I.trash + '</button>' : '')
+    + '</div>'
+    + '</div>';
+
+  el.querySelector('[data-play]').onclick = e => { e.stopPropagation(); playWord(w, false, e.currentTarget); };
+  el.querySelector('[data-practice-listen]').onclick = e => { e.stopPropagation(); startWordPractice(w.uid, 'listen', 'browse'); };
+  el.querySelector('[data-practice-write]').onclick = e => { e.stopPropagation(); startWordPractice(w.uid, 'write', 'browse'); };
+  el.querySelector('[data-pin]').onclick = e => { e.stopPropagation(); setLastStudiedWord(w.uid); };
+  const d = el.querySelector('[data-del]');
+  if(d) d.onclick = e => { e.stopPropagation(); delCustom(w.uid); };
+  return el;
+}
+
+function updateSentinelVisibility(totalCount){
+  const sentinel = $('#browseSentinel');
+  if(!sentinel) return;
+  if(shown >= totalCount){
+    sentinel.style.display = 'none';
+  } else {
+    sentinel.style.display = 'block';
+  }
+}
+
+function ensureBrowseSentinelObserver(){
+  const sentinel = $('#browseSentinel');
+  if(!sentinel) return;
+  if(!('IntersectionObserver' in window)) return;
+  if(sentinelObserver) return;
+
+  sentinelObserver = new IntersectionObserver((entries) => {
+    if(entries[0].isIntersecting){
+      loadNextBrowseChunk();
+    }
+  }, { rootMargin: '350px 0px' });
+  sentinelObserver.observe(sentinel);
+}
+
+function renderList(reset = true, minTarget = 0){
+  const list = $('#browseList'); if(!list) return;
+  const items = getBrowseFiltered();
+  const lastWord = getLastStudiedWord();
+  const lastUid = lastWord ? lastWord.uid : '';
 
   $('#browseCount').textContent = items.length + ' كلمة';
   updateResumeBanner();
 
   if(reset){
-    shown = Math.min(items.length, CHUNK);
+    shown = Math.min(items.length, Math.max(CHUNK, minTarget || CHUNK));
     list.innerHTML = '';
   } else {
-    const prevShown = shown;
+    const prev = shown;
     shown = Math.min(items.length, shown + CHUNK);
-    if(prevShown >= shown) return;
+    if(prev >= shown) { updateSentinelVisibility(items.length); return; }
   }
 
   const startIndex = reset ? 0 : list.children.length;
   const slice = items.slice(startIndex, shown);
   const frag = document.createDocumentFragment();
 
-  slice.forEach(w => {
-    const isLast = (w.uid === lastUid);
-    const el = document.createElement('div');
-    el.className = 'item word-card' + (isLast ? ' is-last-stopped' : '');
-    el.setAttribute('data-uid', w.uid);
-    el.innerHTML = '<div class="word-main">'
-      + '<div class="word-info">'
-      + '<div class="tx-ar">' + esc(w.ar) + '</div>'
-      + '<div class="tx-en">' + esc(w.en) + (w.hint ? '<span class="word-hint">' + esc(w.hint) + '</span>' : '') + '</div>'
-      + '</div>'
-      + '<div class="word-actions">'
-      + '<button class="snd-btn-green" data-play="' + w.uid + '" aria-label="استمع للنطق" title="استمع للنطق">' + I.volume + '</button>'
-      + '<button class="btn-word-act act-listen" data-practice-listen="' + w.uid + '" aria-label="تدرب استماعاً" title="تدرب استماعاً">' + I.headphones + '</button>'
-      + '<button class="btn-word-act act-write" data-practice-write="' + w.uid + '" aria-label="تدرب كتابة" title="تدرب كتابة">' + I.pencil + '</button>'
-      + '<button class="btn-word-act act-pin' + (isLast ? ' pinned' : '') + '" data-pin="' + w.uid + '" aria-label="نقطة توقف" title="' + (isLast ? 'نقطة توقفك الحالية' : 'تثبيت كنقطة توقف') + '">' + (isLast ? I.pinned : I.pin) + '</button>'
-      + (!w.base ? '<button class="btn-word-act act-del" data-del="' + w.uid + '" aria-label="حذف" title="حذف">' + I.trash + '</button>' : '')
-      + '</div>'
-      + '</div>';
+  for(let i = 0; i < slice.length; i++){
+    frag.appendChild(createWordCard(slice[i], lastUid));
+  }
 
-    el.querySelector('[data-play]').onclick = e => { e.stopPropagation(); playWord(w, false, e.currentTarget); };
-    el.querySelector('[data-practice-listen]').onclick = e => { e.stopPropagation(); startWordPractice(w.uid, 'listen', 'browse'); };
-    el.querySelector('[data-practice-write]').onclick = e => { e.stopPropagation(); startWordPractice(w.uid, 'write', 'browse'); };
-    el.querySelector('[data-pin]').onclick = e => { e.stopPropagation(); setLastStudiedWord(w.uid); };
-    const d = el.querySelector('[data-del]');
-    if(d) d.onclick = e => { e.stopPropagation(); delCustom(w.uid); };
-    frag.appendChild(el);
-  });
-
+  paintIcons(frag);
   list.appendChild(frag);
-  paintIcons(list);
-  initBrowseSentinel();
+
+  updateSentinelVisibility(items.length);
+  ensureBrowseSentinelObserver();
 }
+
+function loadNextBrowseChunk(){
+  if(isChunkLoading) return;
+  const browseView = $('#v-browse');
+  if(!browseView || !browseView.classList.contains('on')) return;
+  const items = getBrowseFiltered();
+  if(shown >= items.length){
+    updateSentinelVisibility(items.length);
+    return;
+  }
+  isChunkLoading = true;
+  const list = $('#browseList');
+  if(!list){ isChunkLoading = false; return; }
+
+  const lastWord = getLastStudiedWord();
+  const lastUid = lastWord ? lastWord.uid : '';
+  const prev = shown;
+  shown = Math.min(items.length, shown + CHUNK);
+  const slice = items.slice(prev, shown);
+  const frag = document.createDocumentFragment();
+
+  for(let i = 0; i < slice.length; i++){
+    frag.appendChild(createWordCard(slice[i], lastUid));
+  }
+  paintIcons(frag);
+  list.appendChild(frag);
+
+  updateSentinelVisibility(items.length);
+  isChunkLoading = false;
+}
+
+// Window passive scroll listener as fallback for mobile webviews
+window.addEventListener('scroll', () => {
+  const bv = $('#v-browse');
+  if(!bv || !bv.classList.contains('on')) return;
+  if(isChunkLoading) return;
+  const items = getBrowseFiltered();
+  if(shown >= items.length) return;
+  if(window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 450){
+    loadNextBrowseChunk();
+  }
+}, { passive: true });
 
 /* ---------- my words ---------- */
 function renderMine(){
