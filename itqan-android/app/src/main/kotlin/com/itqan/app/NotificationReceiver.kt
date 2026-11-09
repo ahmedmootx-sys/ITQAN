@@ -52,3 +52,4 @@ class NotificationReceiver : BroadcastReceiver() {
         notificationManager.notify(1001, notification)
     }
 }
+
