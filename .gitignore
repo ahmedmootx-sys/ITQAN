@@ -1,0 +1,8 @@
+# Build outputs and caches
+.gradle/
+build/
+**/build/
+*.tmp
+local.properties
+.idea/
+*.iml
