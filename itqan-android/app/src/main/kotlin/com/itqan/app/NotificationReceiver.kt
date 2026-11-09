@@ -1,13 +1,16 @@
 package com.itqan.app
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import java.util.Calendar
 
 class NotificationReceiver : BroadcastReceiver() {
 
@@ -22,9 +25,11 @@ class NotificationReceiver : BroadcastReceiver() {
             val channel = NotificationChannel(
                 channelId,
                 "تذكيرات إتقان اليومية",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "إشعارات تشجيعية وتذكير بمراجعة الكلمات اليومية"
+                enableVibration(true)
+                setShowBadge(true)
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -39,17 +44,75 @@ class NotificationReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+        val largeIcon = try {
+            BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
+        } catch (_: Exception) {
+            null
+        }
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(0xFFF97316.toInt()) // Itqan Orange
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .build()
+            .addAction(0, "مراجعة الكلمات الآن", pendingIntent)
 
-        notificationManager.notify(1001, notification)
+        if (largeIcon != null) {
+            builder.setLargeIcon(largeIcon)
+        }
+
+        notificationManager.notify(1001, builder.build())
+
+        // Re-schedule alarm for the next day automatically
+        scheduleNextDayAlarm(context)
+    }
+
+    private fun scheduleNextDayAlarm(context: Context) {
+        val prefs = context.getSharedPreferences("itqan_prefs", Context.MODE_PRIVATE)
+        val enabled = prefs.getBoolean("reminder_enabled", false)
+        if (!enabled) return
+
+        val hour = prefs.getInt("reminder_hour", 20)
+        val minute = prefs.getInt("reminder_minute", 0)
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, NotificationReceiver::class.java).apply {
+            putExtra("title", "حان وقت جرعتك الإنجليزية! 🚀")
+            putExtra("message", "5 دقائق فقط من مراجعة الكلمات تصنع فرقاً مذهلاً في ثباتها.")
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            2001,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+        }
     }
 }
-

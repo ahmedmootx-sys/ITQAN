@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -68,6 +69,15 @@ class MainActivity : ComponentActivity() {
             copyAssetToFile("index.html", localIndexFile)
             copyAssetToFile("sw.js", File(wwwDir, "sw.js"))
             copyAssetToFile("manifest.json", File(wwwDir, "manifest.json"))
+            copyAssetToFile("icon-192.png", File(wwwDir, "icon-192.png"))
+            copyAssetToFile("icon-512.png", File(wwwDir, "icon-512.png"))
+            copyAssetToFile("icon-180.png", File(wwwDir, "icon-180.png"))
+        } else {
+            // Ensure icons exist in internal www directory
+            val icon192 = File(wwwDir, "icon-192.png")
+            if (!icon192.exists()) copyAssetToFile("icon-192.png", icon192)
+            val icon512 = File(wwwDir, "icon-512.png")
+            if (!icon512.exists()) copyAssetToFile("icon-512.png", icon512)
         }
 
         webView = WebView(this).apply {
@@ -147,9 +157,11 @@ class MainActivity : ComponentActivity() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "تذكيرات إتقان اليومية",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "إشعارات تشجيعية وتذكير بمراجعة الكلمات اليومية"
+                enableVibration(true)
+                setShowBadge(true)
             }
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)
@@ -168,20 +180,41 @@ class MainActivity : ComponentActivity() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+        val largeIcon = try {
+            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        } catch (_: Exception) {
+            null
+        }
+
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(0xFFF97316.toInt()) // Brand orange
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .build()
+            .addAction(0, "مراجعة الكلمات الآن", pendingIntent)
 
-        nm.notify((System.currentTimeMillis() % 10000).toInt(), notification)
+        if (largeIcon != null) {
+            builder.setLargeIcon(largeIcon)
+        }
+
+        nm.notify((System.currentTimeMillis() % 10000).toInt(), builder.build())
     }
 
     fun scheduleReminderAlarm(hour: Int, minute: Int, mode: String) {
+        // Persist schedule in SharedPreferences for daily rescheduling
+        val prefs = getSharedPreferences("itqan_prefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("reminder_enabled", true)
+            .putInt("reminder_hour", hour)
+            .putInt("reminder_minute", minute)
+            .putString("reminder_mode", mode)
+            .apply()
+
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, NotificationReceiver::class.java).apply {
             putExtra("title", "حان وقت جرعتك الإنجليزية! 🚀")
@@ -199,20 +232,31 @@ class MainActivity : ComponentActivity() {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
             if (timeInMillis <= System.currentTimeMillis()) {
                 add(Calendar.DAY_OF_YEAR, 1)
             }
         }
 
-        alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+        }
     }
 
     fun cancelReminderAlarm() {
+        val prefs = getSharedPreferences("itqan_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("reminder_enabled", false).apply()
+
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, NotificationReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
